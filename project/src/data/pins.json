@@ -1,0 +1,30 @@
+[
+	{
+		"pin": 1,
+		"gpio": 3,
+		"physical": 5,
+		"when": "",
+		"hash": "one"
+	},
+	{
+		"pin": 2,
+		"gpio": 17,
+		"physical": 11,
+		"when": "",
+		"hash": "two"
+	},
+	{
+		"pin": 3,
+		"gpio": 2,
+		"physical": 3,
+		"when": "",
+		"hash": "three"
+	},
+	{
+		"pin": 4,
+		"gpio": 4,
+		"physical": 7,
+		"when": "",
+		"hash": "four"
+	}
+]

@@ -1,0 +1,17 @@
+{
+  "name": "twitter-pi",
+  "version": "0.0.0",
+  "description": "Connect to twitter stream and filter thru tweets",
+  "main": "twitter-pi.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Raymond Lewis Jones",
+  "license": "ISC",
+  "dependencies": {
+    "fs": "0.0.2",
+    "gpio": "^0.2.7",
+    "twitter": "^1.7.1",
+    "util": "^0.10.3"
+  }
+}
