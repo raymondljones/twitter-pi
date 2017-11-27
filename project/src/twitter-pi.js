@@ -236,6 +236,7 @@ var start = function () {
 
 			console.log (error);
 			throw error;
+			process.exit (0);
 		});
 	});
 	
