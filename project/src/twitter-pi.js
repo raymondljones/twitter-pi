@@ -10,7 +10,7 @@ var logSize = 10;
 // the current directory the application runs on
 var dir = __dirname;
 // declare a few global variables
-var launchTime, twitterConfig, client, interval;
+var launchTime, client, interval;
 
 // read the last modified time of the main js file
 var stats = fs.statSync (dir + '/twitter-pi.js');
@@ -154,6 +154,13 @@ var warmup = function () {
 
 // read the data that the stream will listen to
 var listen = require (dir + '/data/listen.json');
+var options = {
+	track: '@' + listen.mention
+};
+var twitterConfig = require (dir + '/data/twitter.json');
+var seconds = 0;
+var current = 0;
+var attempts = 0;
 
 // the main logic
 var start = function () {
@@ -161,15 +168,23 @@ var start = function () {
 	// turn all pins off
 	pinsOff ();
 	
-	// read the twitter config for credentials
-	twitterConfig = require (dir + '/data/twitter.json');
-	// load the config for the stream
-	client = new Twitter (twitterConfig);
+	seconds = 0;
+	attempts++;
 	
-	// set up the options for the stream
-	var options = {
-		track: '@' + listen.mention
-	};
+	console.log ('Starting the stream (attempt ' + attempts + ' on ' + current + ') ...');
+	
+	// read the twitter config for credentials
+	
+	// load the config for the stream
+	client = new Twitter (twitterConfig [current]);
+	
+	if (current == 0) {
+		
+		current = 1;
+	} else {
+		
+		current = 0;
+	}
 	
 	// start the stream
 	client.stream ('statuses/filter', options, function (stream) {
@@ -178,7 +193,7 @@ var start = function () {
 		stream.on ('data', function (tweet) {
 			
 			// run the check function
-			check ();
+			seconds = 0;
 
 			console.log ('-------------------------------------------------');
 			console.log ('Id: ' + tweet.id);
@@ -241,11 +256,20 @@ var start = function () {
 	});
 	
 	// the interval, runs every second.  When a pin's "when" property passes the 60 second mark ... we turn the pin off
+	if (interval) {
+		
+		clearInterval (interval);
+	}
 	interval = setInterval (
 		function () {
 			
-			check ();
+			seconds++;
+			console.log ('Restarting the stream in ' + (listen.max - seconds) + ' seconds ...');
+			if (seconds >= listen.max) {
 			
+				start ();
+			}
+		
 			var now = new Date ();
 			
 			for (var i = 0; i < pins.length; i++) {
@@ -256,6 +280,8 @@ var start = function () {
 					pinOff (pins [i]);
 				}
 			}
+			
+			check ();
 		},
 		1000
 	);
