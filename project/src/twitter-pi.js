@@ -3,6 +3,8 @@ var fs = require ('fs');
 var util = require ('util');
 var Twitter = require ('twitter');
 var gpio = require("gpio");
+var request = require ('request');
+var exec = require ('exec');
 
 // setup a few variables that the application needs
 // the max size of the log in MB
@@ -160,7 +162,7 @@ var options = {
 var twitterConfig = require (dir + '/data/twitter.json');
 var seconds = 0;
 var current = 0;
-var attempts = 0;
+var interval;
 
 // the main logic
 var start = function () {
@@ -169,9 +171,8 @@ var start = function () {
 	pinsOff ();
 	
 	seconds = 0;
-	attempts++;
 	
-	console.log ('Starting the stream (attempt ' + attempts + ' on ' + current + ') ...');
+	console.log ('Starting the stream (attempt on ' + current + ') ...');
 	
 	// read the twitter config for credentials
 	
@@ -250,8 +251,7 @@ var start = function () {
 		stream.on ('error', function (error) {
 
 			console.log (error);
-			throw error;
-			process.exit (0);
+			start ();
 		});
 	});
 	
@@ -286,6 +286,30 @@ var start = function () {
 		1000
 	);
 };
+
+var ping = setInterval (
+	function () {
+		
+		request(
+			"https://twitter.com/",
+			function (error, response, body) {
+				
+				if (error) {
+					console.log ('No internet connection (rebooting) ...');
+					exec(
+						['reboot'],
+						function (err, out, code) {
+							if (err instanceof Error)
+								throw err;
+							console.log ('Rebooting ...');
+						}
+					);
+				}
+			}
+		);
+	},
+	5000
+);
 
 // on initial run, we setup the pins and export them so that the Raspberry Pi can control them
 for (var i = 0; i < pins.length; i++) {

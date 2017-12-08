@@ -9,8 +9,10 @@
   "author": "Raymond Lewis Jones",
   "license": "ISC",
   "dependencies": {
+    "exec": "^0.2.1",
     "fs": "0.0.2",
     "gpio": "^0.2.7",
+    "request": "^2.83.0",
     "twitter": "^1.7.1",
     "util": "^0.10.3"
   }
