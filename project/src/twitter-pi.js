@@ -5,6 +5,28 @@ var Twitter = require ('twitter');
 var gpio = require("gpio");
 var request = require ('request');
 var exec = require ('exec');
+var logger = require ('logat');
+
+var dmessage = function (m) {
+	
+	var message = {
+  		date: new Date().toUTCString(),
+  		details: ((new Error ().stack).split ("at ") [3]).trim (),
+  		message: m
+  	};
+  
+	fs.appendFile(
+		dir + '/log/access.log',
+		"\n\n\n\n" + JSON.stringify (message),
+		function (err) {
+	  		
+	  		if (err) {
+	  			
+	  			derror (err, false);
+	  		}
+		}
+	);
+};
 
 // setup a few variables that the application needs
 // the max size of the log in MB
@@ -24,7 +46,7 @@ var pins = require (dir + '/data/pins.json');
 // turn a pin on
 var pinOn = function (p) {
 	
-	console.log ('On: ' + p.gpio);
+	dmessage ('On: ' + p.gpio);
 	
 	// set the direction of the pin to "out" ... this will send power thru the pin
 	p.controller.setDirection ('out');
@@ -42,7 +64,7 @@ var pinOn = function (p) {
 // turn a pin off
 var pinOff = function (p) {
 	
-	console.log ('Off:  ' + p.gpio);
+	dmessage ('Off:  ' + p.gpio);
 	
 	// set the direction of the pin to "in" ... this will stop power from going out
 	p.controller.setDirection ('in');
@@ -60,7 +82,7 @@ var pinOff = function (p) {
 // turn all pins on, loop thru pins and send each one to the pinOn() function
 var pinsOn = function () {
 	
-	console.log ('All On');
+	dmessage ('All On');
 	for (var i = 0; i < pins.length; i++) {
 	
 		pinOn (pins [i]);
@@ -70,7 +92,7 @@ var pinsOn = function () {
 // turn all pins off, loop thru pins and send each one to the pinOff() function
 var pinsOff = function () {
 	
-	console.log ('All Off');
+	dmessage ('All Off');
 	for (var i = 0; i < pins.length; i++) {
 		
 		pinOff (pins [i]);
@@ -91,13 +113,13 @@ var check = function () {
 			0,
 			function () {
 				
-				console.log('Reduced the log.');
+				dmessage('Reduced the log.');
 			}
 		);
 	}
 	
 	if (checkTime > launchTime) {
-		console.log ('Quitting because the server has changed.');
+		dmessage ('Quitting because the server has changed.');
 		process.exit (0);
 	}
 };
@@ -172,7 +194,7 @@ var start = function () {
 	
 	seconds = 0;
 	
-	console.log ('Starting the stream (attempt on ' + current + ') ...');
+	dmessage ('Starting the stream (attempt on ' + current + ') ...');
 	
 	// read the twitter config for credentials
 	
@@ -196,27 +218,27 @@ var start = function () {
 			// run the check function
 			seconds = 0;
 
-			console.log ('-------------------------------------------------');
-			console.log ('Id: ' + tweet.id);
+			dmessage ('-------------------------------------------------');
+			dmessage ('Id: ' + tweet.id);
 
 			var tweetDate = new Date (tweet.created_at).getTime ();
 			var compareTime = new Date ().getTime ();
 
-			console.log (((compareTime - tweetDate) / 1000) + ' seconds ago ...');
+			dmessage (((compareTime - tweetDate) / 1000) + ' seconds ago ...');
 
 			if (tweet.user) {
 
-				console.log ('Tweeter: @' + tweet.user.screen_name);
+				dmessage ('Tweeter: @' + tweet.user.screen_name);
 			}
 
-			console.log ('Tweet: ' + tweet.text);
+			dmessage ('Tweet: ' + tweet.text);
 
 			if (tweet.entities) {
 
 				if (tweet.entities.hashtags) {
 
-					console.log ('Hashtags:');
-					console.log (tweet.entities.hashtags);
+					dmessage ('Hashtags:');
+					dmessage (tweet.entities.hashtags);
 
 					var hashtags = tweet.entities.hashtags;
 					
@@ -239,18 +261,18 @@ var start = function () {
 
 				if (tweet.entities.user_mentions) {
 
-					console.log ('Mentions:');
-					console.log (tweet.entities.user_mentions);
+					dmessage ('Mentions:');
+					dmessage (tweet.entities.user_mentions);
 				}
 			}
 
-			console.log ('-------------------------------------------------');
+			dmessage ('-------------------------------------------------');
 		});
  		
  		// the callback function for when the stream fails
 		stream.on ('error', function (error) {
 
-			console.log (error);
+			dmessage (error);
 			start ();
 		});
 	});
@@ -264,7 +286,7 @@ var start = function () {
 		function () {
 			
 			seconds++;
-			console.log ('Restarting the stream in ' + (listen.max - seconds) + ' seconds ...');
+			dmessage ('Restarting the stream in ' + (listen.max - seconds) + ' seconds ...');
 			if (seconds >= listen.max) {
 			
 				start ();
@@ -295,13 +317,13 @@ var ping = setInterval (
 			function (error, response, body) {
 				
 				if (error) {
-					console.log ('No internet connection (rebooting) ...');
+					dmessage ('No internet connection (rebooting) ...');
 					exec(
 						['reboot'],
 						function (err, out, code) {
 							if (err instanceof Error)
 								throw err;
-							console.log ('Rebooting ...');
+							dmessage ('Rebooting ...');
 						}
 					);
 				}
@@ -320,7 +342,7 @@ for (var i = 0; i < pins.length; i++) {
 			direction: "out",
 			ready: function() {
 				
-				console.log ('Pin is ready');
+				dmessage ('Pin is ready');
 			}
 		}
 	);

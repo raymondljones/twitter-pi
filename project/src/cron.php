@@ -31,6 +31,6 @@
 		$system = json_decode (file_get_contents ($_dir . '/data/system.json'));
 		
 		// spin up a new instance of the application, directing all output to the log file
-		shell_exec ($system->node . ' \'' . $_dir . '/twitter-pi.js\' > \'' . $_dir . '/log/access.log\' 2>&1 &');
+		shell_exec ($system->node . ' \'' . $_dir . '/twitter-pi.js\' > \'' . $_dir . '/log/access.log\' >> /dev/null &');
 	}
 ?>
