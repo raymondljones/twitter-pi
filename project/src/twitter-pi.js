@@ -286,7 +286,7 @@ var start = function () {
 		function () {
 			
 			seconds++;
-			dmessage ('Restarting the stream in ' + (listen.max - seconds) + ' seconds ...');
+			//dmessage ('Restarting the stream in ' + (listen.max - seconds) + ' seconds ...');
 			if (seconds >= listen.max) {
 			
 				start ();
