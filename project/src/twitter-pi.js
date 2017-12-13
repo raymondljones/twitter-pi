@@ -133,53 +133,33 @@ var check = function () {
 // the warmup sequence
 var warmup = function () {
 	
-	// turn all pins off, and wait 1 second
+	canStart = false;
 	pinsOff ();
 	
-	setTimeout (
-		function () {
-			
-			// turn on the first pin, and wait 1 second
-			pinOn (pins[0]);
-		
-			setTimeout (
-				function () {
-					
-					// turn on the second pin, and wait 1 second
-					pinOn (pins[1]);
-		
-					setTimeout (
-						function () {
-							
-							// turn on the third pin, and wait 1 second
-							pinOn (pins[2]);
-				
-							setTimeout (
-								function () {
-									
-									// turn on the fourth pin, and wait 1 second
-									pinOn (pins[3]);
-						
-									setTimeout (
-										function () {
-											
-											// turn on the main logic, listening to the twitter stream
-											canStart = true;
-										},
-										1000
-									);
-								},
-								1000
-							);
-						},
-						1000
-					);
-				},
-				1000
-			);
-		},
-		1000
-	);
+	var waitTill = new Date(new Date().getTime() + 1 * 1000);
+	while(waitTill > new Date()){}
+	
+	pinOn (pins[0]);
+	
+	var waitTill = new Date(new Date().getTime() + 1 * 1000);
+	while(waitTill > new Date()){}
+	
+	pinOn (pins[1]);
+	
+	var waitTill = new Date(new Date().getTime() + 1 * 1000);
+	while(waitTill > new Date()){}
+	
+	pinOn (pins[2]);
+	
+	var waitTill = new Date(new Date().getTime() + 1 * 1000);
+	while(waitTill > new Date()){}
+	
+	pinOn (pins[3]);
+	
+	var waitTill = new Date(new Date().getTime() + 1 * 1000);
+	while(waitTill > new Date()){}
+	
+	canStart = true;
 };
 
 // read the data that the stream will listen to
