@@ -7,6 +7,7 @@ var request = require ('request');
 var exec = require ('exec');
 var logger = require ('logat');
 var canStart = false;
+var retryCount = 0;
 
 var dmessage = function (m) {
 	
@@ -305,6 +306,7 @@ var pingInterval = setInterval (
 				
 				if (error) {
 					
+					retryCount++;
 					dmessage (error);
 					client = null;
 					dmessage ('Terminating the client');
@@ -312,6 +314,22 @@ var pingInterval = setInterval (
 					if (canStart) {
 						
 						pinsOn ();
+					}
+					
+					if (retryCount >= 12) {
+						
+						dmessage ('Rebooting');
+						exec (
+							['shutdown', '-r', 'now'],
+							function (err, out, code) {
+								
+								if (err) {
+									
+									dmessage (err);
+								}
+								process.exit (1);
+							}
+						);
 					}
 				} else {
 					
