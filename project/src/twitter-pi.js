@@ -292,6 +292,34 @@ var interval = setInterval (
 		
 		seconds++;
 		
+		if (client && canStart) {
+					
+			if (seconds >= listen.max) {
+
+				client = null;
+				dmessage ('Terminating the client');
+			}
+
+			var now = new Date ();
+
+			for (var i = 0; i < pins.length; i++) {
+
+				if (pins [i].when != 0 && ((now.getTime () - pins [i].when.getTime ()) / 1000) >= 60) {
+	
+					// pin passed the 60 second mark
+					pinOff (pins [i]);
+				}
+			}
+		}
+		
+		check ();
+	},
+	1000
+);
+
+var pingInterval = setInterval (
+	function () {
+		
 		request(
 			"https://google.com/",
 			function (error, response, body) {
@@ -311,32 +339,12 @@ var interval = setInterval (
 					if (!client && canStart) {
 						
 						start ();
-					} else if (client && canStart) {
-					
-						if (seconds >= listen.max) {
-			
-							client = null;
-							dmessage ('Terminating the client');
-						}
-	
-						var now = new Date ();
-		
-						for (var i = 0; i < pins.length; i++) {
-
-							if (pins [i].when != 0 && ((now.getTime () - pins [i].when.getTime ()) / 1000) >= 60) {
-				
-								// pin passed the 60 second mark
-								pinOff (pins [i]);
-							}
-						}
 					}
 				}
 			}
 		);
-		
-		check ();
 	},
-	1000
+	5000
 );
 
 // on initial run, we setup the pins and export them so that the Raspberry Pi can control them
