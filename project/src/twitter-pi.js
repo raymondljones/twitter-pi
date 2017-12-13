@@ -165,12 +165,11 @@ var warmup = function () {
 // read the data that the stream will listen to
 var listen = require (dir + '/data/listen.json');
 var options = {
-	track: ['@' + listen.mention]
+	track: '@' + listen.mention
 };
 var twitterConfig = require (dir + '/data/twitter.json');
 var seconds = 0;
 var current = 0;
-var interval;
 
 // the main logic
 var start = function () {
