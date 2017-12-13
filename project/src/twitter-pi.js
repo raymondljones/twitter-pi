@@ -6,14 +6,20 @@ var gpio = require("gpio");
 var request = require ('request');
 var exec = require ('exec');
 var logger = require ('logat');
+var canStart = false;
 
 var dmessage = function (m) {
 	
+	var err = (new Error ().stack);
+	var errp = err.split ('at ');
+	
 	var message = {
   		date: new Date().toUTCString(),
-  		details: ((new Error ().stack).split ("at ") [3]).trim (),
+  		details: (errp [2])?errp [2]:err,
   		message: m
   	};
+  	
+  	console.log (message);
   
 	fs.appendFile(
 		dir + '/log/access.log',
@@ -34,7 +40,7 @@ var logSize = 10;
 // the current directory the application runs on
 var dir = __dirname;
 // declare a few global variables
-var launchTime, client, interval;
+var launchTime, client;
 
 // read the last modified time of the main js file
 var stats = fs.statSync (dir + '/twitter-pi.js');
@@ -120,7 +126,7 @@ var check = function () {
 	
 	if (checkTime > launchTime) {
 		dmessage ('Quitting because the server has changed.');
-		process.exit (0);
+		process.exit (1);
 	}
 };
 
@@ -158,7 +164,7 @@ var warmup = function () {
 										function () {
 											
 											// turn on the main logic, listening to the twitter stream
-											start ();
+											canStart = true;
 										},
 										1000
 									);
@@ -179,7 +185,7 @@ var warmup = function () {
 // read the data that the stream will listen to
 var listen = require (dir + '/data/listen.json');
 var options = {
-	track: '@' + listen.mention
+	track: ['@' + listen.mention]
 };
 var twitterConfig = require (dir + '/data/twitter.json');
 var seconds = 0;
@@ -271,66 +277,66 @@ var start = function () {
  		
  		// the callback function for when the stream fails
 		stream.on ('error', function (error) {
-
-			dmessage (error);
-			start ();
+			
+			if (error) {
+				
+				dmessage (error);
+			}
+			seconds = listen.max;
 		});
 	});
-	
-	// the interval, runs every second.  When a pin's "when" property passes the 60 second mark ... we turn the pin off
-	if (interval) {
-		
-		clearInterval (interval);
-	}
-	interval = setInterval (
-		function () {
-			
-			seconds++;
-			//dmessage ('Restarting the stream in ' + (listen.max - seconds) + ' seconds ...');
-			if (seconds >= listen.max) {
-			
-				start ();
-			}
-		
-			var now = new Date ();
-			
-			for (var i = 0; i < pins.length; i++) {
-	
-				if (pins [i].when != 0 && ((now.getTime () - pins [i].when.getTime ()) / 1000) >= 60) {
-					
-					// pin passed the 60 second mark
-					pinOff (pins [i]);
-				}
-			}
-			
-			check ();
-		},
-		1000
-	);
 };
 
-var ping = setInterval (
+var interval = setInterval (
 	function () {
 		
+		seconds++;
+		
 		request(
-			"https://twitter.com/",
+			"https://google.com/",
 			function (error, response, body) {
 				
 				if (error) {
-					dmessage ('No internet connection (rebooting) ...');
-					exec(
-						['reboot'],
-						function (err, out, code) {
-							if (err instanceof Error)
-								throw err;
-							dmessage ('Rebooting ...');
+					
+					dmessage (error);
+					client = null;
+					dmessage ('Terminating the client');
+					
+					if (canStart) {
+						
+						pinsOn ();
+					}
+				} else {
+					
+					if (!client && canStart) {
+						
+						start ();
+					} else if (client && canStart) {
+					
+						if (seconds >= listen.max) {
+			
+							client = null;
+							dmessage ('Terminating the client');
 						}
-					);
+	
+						var now = new Date ();
+		
+						for (var i = 0; i < pins.length; i++) {
+
+							if (pins [i].when != 0 && ((now.getTime () - pins [i].when.getTime ()) / 1000) >= 60) {
+				
+								// pin passed the 60 second mark
+								pinOff (pins [i]);
+							}
+						}
+					}
 				}
 			}
 		);
+		
+		check ();
 	},
-	5000
+	1000
 );
 
 // on initial run, we setup the pins and export them so that the Raspberry Pi can control them
