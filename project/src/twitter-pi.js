@@ -12,6 +12,7 @@ var retryCount = 0;
 var ga = 'UA-72811938-4';
 var gabase = '/dc/';
 var gatitlebase = 'DC: ';
+var gaeventcategory = 'DC';
 var server = ua(
 	ga,
 	'server',
@@ -35,7 +36,7 @@ var serverPageView = function (page, title) {
 	);
 };
 
-var pageView = function (v, page, title) {
+var pageView = function (v, page, title, e) {
 	
 	var visitor = ua(
 		ga,
@@ -50,6 +51,18 @@ var pageView = function (v, page, title) {
 		function (err) {
 			
 			if (err) {
+				
+				dmessage (err);
+			}
+		}
+	);
+	visitor.event (
+		e.category,
+		"On",
+		e.label,
+		function (err) {
+	  		
+	  		if (err) {
 				
 				dmessage (err);
 			}
@@ -294,7 +307,7 @@ var start = function () {
 							if (hash == pins [i].hash) {
 								
 								// found a match, so turn the matching pin on
-								pageView (tweeter, 'on/' + pins [i].hash, 'On ' + pins [i].hash);
+								pageView (tweeter, 'on/' + pins [i].hash, 'On ' + pins [i].hash, {category: gaeventcategory, label: pins [i].hash});
 								pinOn (pins [i]);
 							}
 						}
@@ -336,17 +349,17 @@ var interval = setInterval (
 				client = null;
 				dmessage ('Terminating the client');
 			}
+		}
+		
+		var now = new Date ();
 
-			var now = new Date ();
+		for (var i = 0; i < pins.length; i++) {
 
-			for (var i = 0; i < pins.length; i++) {
+			if (pins [i].when != 0 && ((now.getTime () - pins [i].when.getTime ()) / 1000) >= 60) {
 
-				if (pins [i].when != 0 && ((now.getTime () - pins [i].when.getTime ()) / 1000) >= 60) {
-	
-					// pin passed the 60 second mark
-					serverPageView ('reset/' + pins [i].hash, 'Reset ' + pins [i].hash);
-					pinOff (pins [i]);
-				}
+				// pin passed the 60 second mark
+				serverPageView ('reset/' + pins [i].hash, 'Reset ' + pins [i].hash);
+				pinOff (pins [i]);
 			}
 		}
 		
