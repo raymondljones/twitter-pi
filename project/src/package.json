@@ -15,6 +15,7 @@
     "logat": "^1.0.6",
     "request": "^2.83.0",
     "twitter": "^1.7.1",
+    "universal-analytics": "^0.4.16",
     "util": "^0.10.3"
   }
 }

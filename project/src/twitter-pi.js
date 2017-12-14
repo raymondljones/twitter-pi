@@ -6,8 +6,56 @@ var gpio = require("gpio");
 var request = require ('request');
 var exec = require ('exec');
 var logger = require ('logat');
+var ua = require ('universal-analytics');
 var canStart = false;
 var retryCount = 0;
+var ga = 'UA-72811938-4';
+var gabase = '/dc/';
+var gatitlebase = 'DC: ';
+var server = ua(
+	ga,
+	'server',
+	{
+		strictCidFormat: false
+	}
+);
+
+var serverPageView = function (page, title) {
+	
+	server.pageview (
+		gabase + page,
+		gatitlebase + title,
+		function (err) {
+			
+			if (err) {
+				
+				dmessage (err);
+			}
+		}
+	);
+};
+
+var pageView = function (v, page, title) {
+	
+	var visitor = ua(
+		ga,
+		v,
+		{
+			strictCidFormat: false
+		}
+	);
+	visitor.pageview (
+		gabase + page,
+		gatitlebase + title,
+		function (err) {
+			
+			if (err) {
+				
+				dmessage (err);
+			}
+		}
+	);
+};
 
 var dmessage = function (m) {
 	
@@ -134,6 +182,8 @@ var check = function () {
 // the warmup sequence
 var warmup = function () {
 	
+	serverPageView ('warmup', 'Warmup');
+	
 	canStart = false;
 	pinsOff ();
 	
@@ -175,6 +225,8 @@ var current = 0;
 // the main logic
 var start = function () {
 	
+	serverPageView ('start', 'Start');
+	
 	// turn all pins off
 	pinsOff ();
 	
@@ -211,9 +263,12 @@ var start = function () {
 			var compareTime = new Date ().getTime ();
 
 			dmessage (((compareTime - tweetDate) / 1000) + ' seconds ago ...');
-
+			
+			var tweeter = 'undefined';
+			
 			if (tweet.user) {
-
+				
+				tweeter = tweet.user.id;
 				dmessage ('Tweeter: @' + tweet.user.screen_name);
 			}
 
@@ -239,6 +294,7 @@ var start = function () {
 							if (hash == pins [i].hash) {
 								
 								// found a match, so turn the matching pin on
+								pageView (tweeter, 'on/' + pins [i].hash, 'On ' + pins [i].hash);
 								pinOn (pins [i]);
 							}
 						}
@@ -275,7 +331,8 @@ var interval = setInterval (
 		if (client && canStart) {
 					
 			if (seconds >= listen.max) {
-
+				
+				serverPageView ('terminate', 'Terminate');
 				client = null;
 				dmessage ('Terminating the client');
 			}
@@ -287,6 +344,7 @@ var interval = setInterval (
 				if (pins [i].when != 0 && ((now.getTime () - pins [i].when.getTime ()) / 1000) >= 60) {
 	
 					// pin passed the 60 second mark
+					serverPageView ('reset/' + pins [i].hash, 'Reset ' + pins [i].hash);
 					pinOff (pins [i]);
 				}
 			}
